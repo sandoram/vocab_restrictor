@@ -3,6 +3,7 @@ import pattern3
 import re
 import lemminflect
 import nltk
+nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
 nlp = spacy.load("en_core_web_sm")
 
