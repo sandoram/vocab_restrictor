@@ -5,6 +5,7 @@ from scipy import spatial
 import tensorflow as tf
 import tensorflow_hub as hub
 import tensorflow_text
+from grammarize import grammarize
  
 module_use = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual-qa/3")
 
@@ -57,6 +58,7 @@ class vocab_restrictor(object):
         # restricts text
         words = text.split()
         target_words = [self.normalize(word) for word in words]
+                    
         if mode=='test':
             return ' '.join([t if t==w else t.upper()+'('+w+')' 
                              for t,w in zip(target_words,words)])
@@ -64,4 +66,7 @@ class vocab_restrictor(object):
             return ' '.join(target_words)
         elif mode=='sus':
             return ' '.join([t if t==w else t.upper() 
+                             for t,w in zip(target_words,words)])
+        elif mode=='grammatical':
+            return ' '.join([t if t==w else grammarize(w, t)
                              for t,w in zip(target_words,words)])
