@@ -55,18 +55,21 @@ def tense_check(inputted, suggested):
     if inputted.lemma_ == suggested.lemma_:
         return inputted.text
 
-    elif inputted.pos_ != suggested.pos_:
+    elif (inputted.pos_ != suggested.pos_) and inputted.pos_ in pos_map and suggested.pos_ in pos_map:
         possibilities = preserve_pos(suggested.text, pos_map[suggested.pos_], pos_map[inputted.pos_])
+        
+        #inelegant
         stem = suggested.text
         stem = stem[:4]
         for possibility, prob in possibilities:
             if stem in possibility:
                 suggested = nlp(possibility)[0]
                 break
+                
     if inputted.tag_ != suggested.tag_:
         return suggested._.inflect(inputted.tag_)
 
-    return suggested
+    return suggested.text
 
 def case_match(inputted, suggested):
     if inputted.islower():
@@ -76,22 +79,22 @@ def case_match(inputted, suggested):
     else:
         return inputted
 
-
-def grammarize(inputted, suggested, unparsed=True):
+# takes string input, explore preparsing text
+def grammarize(inputted, suggested, unparsed = True):
+    
     if unparsed:
-        suggested = case_match(inputted, suggested)
+        original_word = inputted
+        target = suggested
+
         inputted = nlp(inputted)[0]
         suggested = nlp(suggested)[0]
     else:
-        suggested = case_match(inputted.text, suggested)
-        suggested = nlp(suggested)[0]
+        original_word = inputted.text
+        target = suggested.text
 
-    # works better if processed with context, explore how to make more robust (entity recognition?)
     if inputted.pos_ == 'PROPN':
-        return inputted.text
-
+        target = inputted.text
     else:
-        return tense_check(inputted, suggested)
+        target = tense_check(inputted, suggested)
 
-    return suggested.text
-    # return case_match(inputted, target)
+    return case_match(original_word, target)
