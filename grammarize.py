@@ -1,9 +1,7 @@
 import spacy
-import pattern3
 import re
 import lemminflect
 import nltk
-nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
 nlp = spacy.load("en_core_web_sm")
 
@@ -77,7 +75,7 @@ def case_match(inputted, suggested):
     elif inputted.isupper():
         return suggested.upper()
     else:
-        return inputted
+        return suggested.title()
 
 # takes string input, explore preparsing text
 def grammarize(inputted, suggested, unparsed = True):
