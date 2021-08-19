@@ -3,14 +3,15 @@ import re
 import lemminflect
 import nltk
 from nltk.corpus import wordnet as wn
+import string
 nlp = spacy.load("en_core_web_sm")
-
 
 WN_NOUN = 'n'
 WN_VERB = 'v'
 WN_ADJECTIVE = 'a'
 WN_ADJECTIVE_SATELLITE = 's'
 WN_ADVERB = 'r'
+punctuation =  string.punctuation+ ' '+'-'+'–'
 
 def preserve_pos(word, from_pos, to_pos):
     """ Transform words given from/to POS tags """
@@ -69,30 +70,48 @@ def tense_check(inputted, suggested):
 
     return suggested.text
 
+def punct_preserve(inputted):
+    s = ''
+    e = ''
+    for i in inputted:
+        if i in punctuation:
+            s += i
+        else:
+            break
+    
+    for i in reversed(inputted):
+        if i in punctuation:
+            e += i
+        else:
+            break
+            
+    return (s, inputted[len(s):len(inputted)-len(e)], e[::-1])
+
 def case_match(inputted, suggested):
-    if inputted.islower():
-        return suggested.lower()
+
+    if inputted[0].isupper() and inputted[1:].islower():
+        return suggested.title()
     elif inputted.isupper():
         return suggested.upper()
     else:
-        return suggested.title()
+        return suggested.lower()
 
 # takes string input, explore preparsing text
-def grammarize(inputted, suggested, unparsed = True):
+def grammarize(inputted, suggested):
+  
+    target = suggested
+    start_punct, original_word, end_punct = punct_preserve(inputted)
     
-    if unparsed:
-        original_word = inputted
-        target = suggested
-
-        inputted = nlp(inputted)[0]
-        suggested = nlp(suggested)[0]
-    else:
-        original_word = inputted.text
-        target = suggested.text
+    if original_word == '':
+        return inputted
+    
+    suggested = nlp(suggested)[0]
+    inputted = nlp(original_word)[0]
 
     if inputted.pos_ == 'PROPN':
         target = inputted.text
     else:
         target = tense_check(inputted, suggested)
 
-    return case_match(original_word, target)
+    target=case_match(original_word, target)
+    return start_punct+target+end_punct
